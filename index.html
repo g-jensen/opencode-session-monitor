@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenCode Session Monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div x-data="app">
+  
+    <header class="connection-bar">
+      <h1>OpenCode Monitor</h1>
+      <div class="connection-controls">
+        <template x-if="isDisconnected(connected)">
+          <div class="connect-form">
+            <input 
+              type="text" 
+              x-model="serverUrl" 
+              placeholder="http://localhost:4096"
+              :disabled="connecting"
+            >
+            <button @click="connect" :disabled="connecting">
+              <span x-show="isNotConnecting(connecting)">Connect</span>
+              <span x-show="connecting">Connecting...</span>
+            </button>
+          </div>
+        </template>
+        <template x-if="connected">
+          <div class="connected-status">
+            <span class="status-badge connected">Connected</span>
+            <span class="server-info" x-text="serverUrl"></span>
+            <span class="version" x-show="version" x-text="formatVersion(version)"></span>
+            <button @click="disconnect" class="disconnect-btn">Disconnect</button>
+          </div>
+        </template>
+      </div>
+    </header>
+
+    <div class="error-banner" x-show="error" x-text="error"></div>
+
+    <template x-if="connected">
+      <div class="session-selector">
+        <label for="session-select">Session:</label>
+        <div class="session-combobox">
+          <input 
+            type="text" 
+            x-model="sessionFilter" 
+            placeholder="Search sessions..."
+            @focus="showSessionDropdown = true"
+            @blur="setTimeout(() => showSessionDropdown = false, 150)"
+          >
+          <div class="session-dropdown" x-show="showSessionDropdown">
+            <template x-for="session in filteredSessions" :key="session.id">
+              <div 
+                class="session-option" 
+                :class="{ 'selected': isSessionSelected(session, selectedSessionId) }"
+                @mousedown="selectSession(session.id); sessionFilter = getSessionDisplay(session)"
+                x-text="getSessionDisplay(session)"
+              ></div>
+            </template>
+            <div class="session-option empty" x-show="hasNoFilteredSessions(filteredSessions)">No sessions found</div>
+          </div>
+        </div>
+        <button @click="swapPanels" class="swap-btn">Swap Panels</button>
+        <button @click="toggleThinking" class="toggle-btn" :class="{ 'active': showThinking }">
+          <span x-text="getThinkingButtonText(showThinking)"></span>
+        </button>
+        <div class="variant-dropdown" x-show="hasVariants(currentModelVariants)">
+          <button 
+            class="variant-trigger"
+            @click="toggleVariantDropdown()"
+            @blur="setTimeout(() => showVariantDropdown = false, 150)"
+          >
+            <span x-text="getVariantButtonText(selectedVariant)"></span>
+          </button>
+          <div class="variant-menu" x-show="showVariantDropdown">
+            <div 
+              class="variant-option"
+              :class="{ 'selected': isDefaultVariantSelected(selectedVariant) }"
+              @mousedown="selectedVariant = ''"
+            >Default</div>
+            <template x-for="variant in currentModelVariants" :key="variant">
+              <div 
+                class="variant-option"
+                :class="{ 'selected': isVariantSelected(variant, selectedVariant) }"
+                @mousedown="selectedVariant = variant"
+                x-text="variant"
+              ></div>
+            </template>
+          </div>
+        </div>
+        <div class="model-combobox">
+          <input 
+            type="text" 
+            x-model="modelFilter" 
+            placeholder="Model..."
+            @focus="showModelDropdown = true"
+            @blur="setTimeout(() => showModelDropdown = false, 150)"
+          >
+          <div class="model-dropdown" x-show="showModelDropdown">
+            <template x-for="model in filteredModels" :key="model.id">
+              <div 
+                class="model-option"
+                :class="{ 'selected': isModelSelected(model, selectedModel) }"
+                @mousedown="selectedModel = model.name; modelFilter = model.name"
+                x-text="model.name"
+              ></div>
+            </template>
+            <div class="model-option empty" x-show="hasNoFilteredModels(filteredModels)">No models found</div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="showMainPanels(connected, tree)">
+      <main class="panels" :class="{ 'swapped': panelsSwapped }">
+        
+        <section class="panel output-panel">
+          <h2>Output</h2>
+          <div class="messages">
+            <template x-for="message in messages" :key="message.id">
+              <div class="message" :class="message.role">
+                <div class="message-header">
+                  <span class="message-role" x-text="getRoleLabel(message.role)"></span>
+                </div>
+                <template x-for="part in message.parts" :key="part.id">
+                  <div class="part" :class="getPartClass(part)">
+                    <template x-if="isTextPart(part)">
+                      <pre x-text="part.content"></pre>
+                    </template>
+                    <template x-if="isToolPart(part)">
+                      <div class="tool-call" :class="{ 'clickable': isClickableTaskPart(part) }" @click="handleTaskClick(part)">
+                        <code x-text="getToolDisplay(part)"></code>
+                      </div>
+                    </template>
+                    <template x-if="shouldShowReasoningPart(part, showThinking)">
+                      <div class="reasoning">
+                        <pre x-text="getReasoningDisplay(part)"></pre>
+                      </div>
+                    </template>
+                    <template x-if="isFilePart(part)">
+                      <div class="file-attachment">
+                        <span x-text="getFileDisplay(part)"></span>
+                      </div>
+                    </template>
+                    <template x-if="isAgentPart(part)">
+                      <div class="agent-part">
+                        <code x-text="getAgentDisplay(part)"></code>
+                      </div>
+                    </template>
+                    <template x-if="isSubtaskPart(part)">
+                      <div class="subtask-part">
+                        <code x-text="getSubtaskDisplay(part)"></code>
+                      </div>
+                    </template>
+                    <template x-if="isRetryPart(part)">
+                      <div class="retry-part">
+                        <span x-text="getRetryDisplay(part)"></span>
+                      </div>
+                    </template>
+                    <template x-if="isPatchPart(part)">
+                      <div class="patch-part">
+                        <span x-text="getPatchDisplay(part)"></span>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+          <div class="prompt-input">
+            
+            <input 
+              type="text" 
+              x-model="promptInput" 
+              placeholder="Send a message..."
+              @keydown.enter="sendPrompt"
+              :disabled="isPromptDisabled(selectedNodeId)"
+            >
+            <button @click="sendPrompt" :disabled="isSendDisabled(selectedNodeId, promptInput)">Send</button>
+            <div class="prompt-dropup">
+              <button 
+                class="dropup-trigger"
+                @click="toggleAgentDropup()"
+                @blur="setTimeout(() => showAgentDropup = false, 150)"
+              >
+                <span x-text="getAgentButtonText(selectedAgent)"></span>
+              </button>
+              <div class="dropup-menu" x-show="showAgentDropup">
+                <div 
+                  class="dropup-option" 
+                  :class="{ 'selected': isDefaultAgentSelected(selectedAgent) }"
+                  @mousedown="selectedAgent = ''"
+                >Default</div>
+                <template x-for="agent in agents" :key="agent.name">
+                  <div 
+                    class="dropup-option"
+                    :class="{ 'selected': isAgentSelected(agent, selectedAgent) }"
+                    @mousedown="selectedAgent = agent.name"
+                    x-text="agent.name"
+                  ></div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel tree-panel">
+          <h2>Session Tree</h2>
+          <div class="tree" x-html="renderTree()" @click="handleTreeClick($event)"></div>
+          <div class="tree-actions">
+            <button @click="abortSession" class="abort-btn">Interrupt Session</button>
+          </div>
+        </section>
+
+      </main>
+    </template>
+
+    <template x-if="showEmptyState(connected, tree, selectedSessionId)">
+      <div class="empty-state">
+        <p>Select a session to view its tree and output.</p>
+      </div>
+    </template>
+
+  </div>
+
+  <script type="module">
+    import { app } from './src/app.js'
+    import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/module.esm.js'
+    
+    Alpine.data('app', app)
+    Alpine.start()
+  </script>
+
+</body>
+</html>
