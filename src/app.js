@@ -1,58 +1,15 @@
-import { 
-  createApiClient as defaultCreateApiClient, 
-  buildTree,
-  processParts,
-  parseEvent,
-  handlePartUpdated,
-  handleSessionCreated,
-  handleSessionUpdated,
-  handleSessionStatus,
-  handleMessageUpdated
-} from './index.js'
+import { createApiClient as defaultCreateApiClient } from './core/api.js'
+import { buildTree } from './core/tree.js'
+import { processParts } from './core/messages.js'
+import { parseEvent } from './core/events.js'
+import { handlePartUpdated, handleSessionCreated, handleSessionUpdated, handleSessionStatus, handleMessageUpdated } from './core/state.js'
 
-import {
-  partTypes
-} from './part-types.js'
-
-import {
-  partDisplay
-} from './part-display.js'
-
-import {
-  filterSessions,
-  isSessionSelected,
-  hasNoFilteredSessions
-} from './session-helpers.js'
-
-import {
-  filterModels,
-  getModelVariants,
-  isDefaultModelSelected,
-  isModelSelected,
-  hasNoFilteredModels,
-  hasVariants,
-  isVariantSelected,
-  isDefaultVariantSelected,
-  getVariantButtonText,
-  getModelWithVariant
-} from './model-helpers.js'
-
-import {
-  getAgentButtonText,
-  isDefaultAgentSelected,
-  isAgentSelected
-} from './agent-helpers.js'
-
-import {
-  isDisconnected,
-  isNotConnecting,
-  getThinkingButtonText,
-  showMainPanels,
-  showEmptyState,
-  isPromptDisabled,
-  isSendDisabled,
-  getTreePrefix
-} from './ui-helpers.js'
+import * as partTypes from './part-types.js'
+import * as partDisplay from './part-display.js'
+import * as sessionHelpers from './session-helpers.js'
+import * as modelHelpers from './model-helpers.js'
+import * as agentHelpers from './agent-helpers.js'
+import * as uiHelpers from './ui-helpers.js'
 
 import {
   scrollMessagesToBottom as defaultScrollMessagesToBottom,
@@ -72,6 +29,14 @@ export function app(deps = {}) {
   } = deps
 
   return {
+    partTypes,
+    partDisplay,
+    sessionHelpers,
+    modelHelpers,
+    agentHelpers,
+    uiHelpers,
+    getToolDisplay,
+
     serverUrl: 'http://localhost:4096',
     connected: false,
     connecting: false,
@@ -83,13 +48,13 @@ export function app(deps = {}) {
       return this.sessions.filter(s => !s.parentID && !s.parentId)
     },
     get filteredSessions() {
-      return filterSessions(this.rootSessions, this.sessionFilter)
+      return sessionHelpers.filterSessions(this.rootSessions, this.sessionFilter)
     },
     get filteredModels() {
-      return filterModels(this.providers, this.modelFilter)
+      return modelHelpers.filterModels(this.providers, this.modelFilter)
     },
     get currentModelVariants() {
-      return getModelVariants(this.providers, this.selectedModel)
+      return modelHelpers.getModelVariants(this.providers, this.selectedModel)
     },
     selectedSessionId: null,
     tree: null,
@@ -291,7 +256,7 @@ export function app(deps = {}) {
       if (!this.promptInput || !this.selectedNodeId) return
       const opts = {}
       if (this.selectedAgent) opts.agent = this.selectedAgent
-      const modelWithVariant = getModelWithVariant(this.selectedModel, this.selectedVariant)
+      const modelWithVariant = modelHelpers.getModelWithVariant(this.selectedModel, this.selectedVariant)
       if (modelWithVariant) opts.model = modelWithVariant
       if (Object.keys(opts).length > 0) {
         await this.api.sendMessage(this.selectedNodeId, this.promptInput, opts)
@@ -312,35 +277,6 @@ export function app(deps = {}) {
     getPartClass(part) {
       return 'part-' + part.type
     },
-
-    partTypes,
-    partDisplay,
-    isDisconnected,
-    isNotConnecting,
-    isSessionSelected,
-    hasNoFilteredSessions,
-    getThinkingButtonText,
-    isDefaultModelSelected,
-    isModelSelected,
-    hasNoFilteredModels,
-    showMainPanels,
-    getAgentButtonText,
-    isDefaultAgentSelected,
-    isAgentSelected,
-    hasVariants,
-    isVariantSelected,
-    isDefaultVariantSelected,
-    getVariantButtonText,
-    getModelWithVariant,
-    isPromptDisabled,
-    isSendDisabled,
-    showEmptyState,
-
-    filterSessions,
-    getTreePrefix,
-    getModelVariants,
-
-    getToolDisplay,
 
     formatVersion(version) {
       return 'v' + version
@@ -374,7 +310,7 @@ export function app(deps = {}) {
       const isSelected = node.id === this.selectedNodeId
       const selectedClass = isSelected ? 'selected' : ''
       const statusClass = `status-${node.status || 'idle'}`
-      const prefix = getTreePrefix(depth, isLast, ancestorContinues)
+      const prefix = uiHelpers.getTreePrefix(depth, isLast, ancestorContinues)
       
       let html = `<div class="tree-node ${selectedClass} ${statusClass}" 
                        data-node-id="${node.id}">

@@ -1,6 +1,4 @@
-import {
-  partTypes
-} from '../src/part-types.js'
+import * as partTypes from '../src/part-types.js'
 
 describe('isTextPart', () => {
   test('returns true for text type', () => {

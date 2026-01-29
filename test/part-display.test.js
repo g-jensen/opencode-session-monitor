@@ -1,6 +1,4 @@
-import {
-  partDisplay
-} from '../src/part-display.js'
+import * as partDisplay from '../src/part-display.js'
 
 describe('getAgentDisplay', () => {
   test('returns "Skill: {name}" for agent part with name', () => {

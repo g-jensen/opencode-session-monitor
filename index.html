@@ -12,7 +12,7 @@
     <header class="connection-bar">
       <h1>OpenCode Monitor</h1>
       <div class="connection-controls">
-        <template x-if="isDisconnected(connected)">
+        <template x-if="uiHelpers.isDisconnected(connected)">
           <div class="connect-form">
             <input 
               type="text" 
@@ -21,7 +21,7 @@
               :disabled="connecting"
             >
             <button @click="connect" :disabled="connecting">
-              <span x-show="isNotConnecting(connecting)">Connect</span>
+              <span x-show="uiHelpers.isNotConnecting(connecting)">Connect</span>
               <span x-show="connecting">Connecting...</span>
             </button>
           </div>
@@ -54,36 +54,36 @@
             <template x-for="session in filteredSessions" :key="session.id">
               <div 
                 class="session-option" 
-                :class="{ 'selected': isSessionSelected(session, selectedSessionId) }"
+                :class="{ 'selected': sessionHelpers.isSessionSelected(session, selectedSessionId) }"
                 @mousedown="selectSession(session.id); sessionFilter = getSessionDisplay(session)"
                 x-text="getSessionDisplay(session)"
               ></div>
             </template>
-            <div class="session-option empty" x-show="hasNoFilteredSessions(filteredSessions)">No sessions found</div>
+            <div class="session-option empty" x-show="sessionHelpers.hasNoFilteredSessions(filteredSessions)">No sessions found</div>
           </div>
         </div>
         <button @click="swapPanels" class="swap-btn">Swap Panels</button>
         <button @click="toggleThinking" class="toggle-btn" :class="{ 'active': showThinking }">
-          <span x-text="getThinkingButtonText(showThinking)"></span>
+          <span x-text="uiHelpers.getThinkingButtonText(showThinking)"></span>
         </button>
-        <div class="variant-dropdown" x-show="hasVariants(currentModelVariants)">
+        <div class="variant-dropdown" x-show="modelHelpers.hasVariants(currentModelVariants)">
           <button 
             class="variant-trigger"
             @click="toggleVariantDropdown()"
             @blur="setTimeout(() => showVariantDropdown = false, 150)"
           >
-            <span x-text="getVariantButtonText(selectedVariant)"></span>
+            <span x-text="modelHelpers.getVariantButtonText(selectedVariant)"></span>
           </button>
           <div class="variant-menu" x-show="showVariantDropdown">
             <div 
               class="variant-option"
-              :class="{ 'selected': isDefaultVariantSelected(selectedVariant) }"
+              :class="{ 'selected': modelHelpers.isDefaultVariantSelected(selectedVariant) }"
               @mousedown="selectedVariant = ''"
             >Default</div>
             <template x-for="variant in currentModelVariants" :key="variant">
               <div 
                 class="variant-option"
-                :class="{ 'selected': isVariantSelected(variant, selectedVariant) }"
+                :class="{ 'selected': modelHelpers.isVariantSelected(variant, selectedVariant) }"
                 @mousedown="selectedVariant = variant"
                 x-text="variant"
               ></div>
@@ -102,18 +102,18 @@
             <template x-for="model in filteredModels" :key="model.id">
               <div 
                 class="model-option"
-                :class="{ 'selected': isModelSelected(model, selectedModel) }"
+                :class="{ 'selected': modelHelpers.isModelSelected(model, selectedModel) }"
                 @mousedown="selectedModel = model.name; modelFilter = model.name"
                 x-text="model.name"
               ></div>
             </template>
-            <div class="model-option empty" x-show="hasNoFilteredModels(filteredModels)">No models found</div>
+            <div class="model-option empty" x-show="modelHelpers.hasNoFilteredModels(filteredModels)">No models found</div>
           </div>
         </div>
       </div>
     </template>
 
-    <template x-if="showMainPanels(connected, tree)">
+    <template x-if="uiHelpers.showMainPanels(connected, tree)">
       <main class="panels" :class="{ 'swapped': panelsSwapped }">
         
         <section class="panel output-panel">
@@ -176,27 +176,27 @@
               x-model="promptInput" 
               placeholder="Send a message..."
               @keydown.enter="sendPrompt"
-              :disabled="isPromptDisabled(selectedNodeId)"
+              :disabled="uiHelpers.isPromptDisabled(selectedNodeId)"
             >
-            <button @click="sendPrompt" :disabled="isSendDisabled(selectedNodeId, promptInput)">Send</button>
+            <button @click="sendPrompt" :disabled="uiHelpers.isSendDisabled(selectedNodeId, promptInput)">Send</button>
             <div class="prompt-dropup">
               <button 
                 class="dropup-trigger"
                 @click="toggleAgentDropup()"
                 @blur="setTimeout(() => showAgentDropup = false, 150)"
               >
-                <span x-text="getAgentButtonText(selectedAgent)"></span>
+                <span x-text="agentHelpers.getAgentButtonText(selectedAgent)"></span>
               </button>
               <div class="dropup-menu" x-show="showAgentDropup">
                 <div 
                   class="dropup-option" 
-                  :class="{ 'selected': isDefaultAgentSelected(selectedAgent) }"
+                  :class="{ 'selected': agentHelpers.isDefaultAgentSelected(selectedAgent) }"
                   @mousedown="selectedAgent = ''"
                 >Default</div>
                 <template x-for="agent in agents" :key="agent.name">
                   <div 
                     class="dropup-option"
-                    :class="{ 'selected': isAgentSelected(agent, selectedAgent) }"
+                    :class="{ 'selected': agentHelpers.isAgentSelected(agent, selectedAgent) }"
                     @mousedown="selectedAgent = agent.name"
                     x-text="agent.name"
                   ></div>
@@ -217,7 +217,7 @@
       </main>
     </template>
 
-    <template x-if="showEmptyState(connected, tree, selectedSessionId)">
+    <template x-if="uiHelpers.showEmptyState(connected, tree, selectedSessionId)">
       <div class="empty-state">
         <p>Select a session to view its tree and output.</p>
       </div>
