@@ -188,17 +188,12 @@
                 <span x-text="agentHelpers.getAgentButtonText(selectedAgent)"></span>
               </button>
               <div class="dropup-menu" x-show="showAgentDropup">
-                <div 
-                  class="dropup-option" 
-                  :class="{ 'selected': agentHelpers.isDefaultAgentSelected(selectedAgent) }"
-                  @mousedown="selectedAgent = ''"
-                >Default</div>
-                <template x-for="agent in agents" :key="agent.name">
+                <template x-for="agent in agents" :key="agent">
                   <div 
                     class="dropup-option"
                     :class="{ 'selected': agentHelpers.isAgentSelected(agent, selectedAgent) }"
-                    @mousedown="selectedAgent = agent.name"
-                    x-text="agent.name"
+                    @mousedown="selectedAgent = agent"
+                    x-text="agent"
                   ></div>
                 </template>
               </div>

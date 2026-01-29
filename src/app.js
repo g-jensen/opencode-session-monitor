@@ -56,6 +56,21 @@ export function app(deps = {}) {
     get currentModelVariants() {
       return modelHelpers.getModelVariants(this.selectedModel)
     },
+    getRoleLabel(role) {
+      return role === 'user' ? 'Prompt' : 'Assistant'
+    },
+
+    getSessionDisplay(session) {
+      return session.title || session.id
+    },
+
+    getPartClass(part) {
+      return 'part-' + part.type
+    },
+
+    formatVersion(version) {
+      return 'v' + version
+    },
     selectedSessionId: null,
     tree: null,
     selectedNodeId: null,
@@ -91,12 +106,6 @@ export function app(deps = {}) {
         this.version = health.version
         this.connected = true
         this.sessions = await this.api.fetchSessions()
-        if (this.api.fetchAgents) {
-          this.agents = await this.api.fetchAgents()
-          if (this.agents.length > 0) {
-            this.selectedAgent = this.agents[0].name
-          }
-        }
         if (this.api.fetchProviders) this.providers = await this.api.fetchProviders()
         if (this.api.fetchConfig) {
           const config = await this.api.fetchConfig()
@@ -104,6 +113,8 @@ export function app(deps = {}) {
             this.selectedModel.name = config.model
             this.modelFilter = config.model
           }
+          this.agents = Object.keys(config.agent).filter((a) => !config.agent[a].disable)
+          this.selectedAgent = this.agents[0]
         }
         if (!this.selectedModel?.name && this.providers?.default?.model) {
           this.selectedModel.name = this.providers.default.model
@@ -266,22 +277,6 @@ export function app(deps = {}) {
         await this.api.sendMessage(this.selectedNodeId, this.promptInput)
       }
       this.promptInput = ''
-    },
-
-    getRoleLabel(role) {
-      return role === 'user' ? 'Prompt' : 'Assistant'
-    },
-
-    getSessionDisplay(session) {
-      return session.title || session.id
-    },
-
-    getPartClass(part) {
-      return 'part-' + part.type
-    },
-
-    formatVersion(version) {
-      return 'v' + version
     },
 
     scrollToBottom(force = false) {

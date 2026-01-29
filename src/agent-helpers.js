@@ -7,5 +7,5 @@ export function isDefaultAgentSelected(selectedAgent) {
 }
 
 export function isAgentSelected(agent, selectedAgent) {
-  return agent.name === selectedAgent
+  return agent === selectedAgent
 }
