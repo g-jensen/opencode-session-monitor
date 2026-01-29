@@ -317,7 +317,6 @@ export function app(deps = {}) {
       let html = `<div class="tree-node ${selectedClass} ${statusClass}" 
                        data-node-id="${node.id}">
                     <span class="node-prefix">${prefix}</span>
-                    <span class="node-status"></span>
                     <span class="node-title">${node.title || node.id}</span>
                   </div>`
       
