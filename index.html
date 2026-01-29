@@ -126,42 +126,42 @@
                 </div>
                 <template x-for="part in message.parts" :key="part.id">
                   <div class="part" :class="getPartClass(part)">
-                    <template x-if="isTextPart(part)">
+                    <template x-if="partTypes.isTextPart(part)">
                       <pre x-text="part.content"></pre>
                     </template>
-                    <template x-if="isToolPart(part)">
-                      <div class="tool-call" :class="{ 'clickable': isClickableTaskPart(part) }" @click="handleTaskClick(part)">
+                    <template x-if="partTypes.isToolPart(part)">
+                      <div class="tool-call" :class="{ 'clickable': partDisplay.isClickableTaskPart(part) }" @click="handleTaskClick(part)">
                         <code x-text="getToolDisplay(part)"></code>
                       </div>
                     </template>
-                    <template x-if="shouldShowReasoningPart(part, showThinking)">
+                    <template x-if="partDisplay.shouldShowReasoningPart(part, showThinking)">
                       <div class="reasoning">
-                        <pre x-text="getReasoningDisplay(part)"></pre>
+                        <pre x-text="partDisplay.getReasoningDisplay(part)"></pre>
                       </div>
                     </template>
-                    <template x-if="isFilePart(part)">
+                    <template x-if="partTypes.isFilePart(part)">
                       <div class="file-attachment">
-                        <span x-text="getFileDisplay(part)"></span>
+                        <span x-text="partDisplay.getFileDisplay(part)"></span>
                       </div>
                     </template>
-                    <template x-if="isAgentPart(part)">
+                    <template x-if="partTypes.isAgentPart(part)">
                       <div class="agent-part">
-                        <code x-text="getAgentDisplay(part)"></code>
+                        <code x-text="partDisplay.getAgentDisplay(part)"></code>
                       </div>
                     </template>
-                    <template x-if="isSubtaskPart(part)">
+                    <template x-if="partTypes.isSubtaskPart(part)">
                       <div class="subtask-part">
-                        <code x-text="getSubtaskDisplay(part)"></code>
+                        <code x-text="partDisplay.getSubtaskDisplay(part)"></code>
                       </div>
                     </template>
-                    <template x-if="isRetryPart(part)">
+                    <template x-if="partTypes.isRetryPart(part)">
                       <div class="retry-part">
-                        <span x-text="getRetryDisplay(part)"></span>
+                        <span x-text="partDisplay.getRetryDisplay(part)"></span>
                       </div>
                     </template>
-                    <template x-if="isPatchPart(part)">
+                    <template x-if="partTypes.isPatchPart(part)">
                       <div class="patch-part">
-                        <span x-text="getPatchDisplay(part)"></span>
+                        <span x-text="partDisplay.getPatchDisplay(part)"></span>
                       </div>
                     </template>
                   </div>

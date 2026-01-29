@@ -10,279 +10,57 @@ import {
   handleMessageUpdated
 } from './index.js'
 
-export function isTextPart(part) {
-  return part.type === 'text'
-}
+import {
+  partTypes
+} from './part-types.js'
 
-export function isToolPart(part) {
-  return part.type === 'tool'
-}
+import {
+  partDisplay
+} from './part-display.js'
 
-export function isReasoningPart(part) {
-  return part.type === 'reasoning'
-}
+import {
+  filterSessions,
+  isSessionSelected,
+  hasNoFilteredSessions
+} from './session-helpers.js'
 
-export function isFilePart(part) {
-  return part.type === 'file'
-}
+import {
+  filterModels,
+  getModelVariants,
+  isDefaultModelSelected,
+  isModelSelected,
+  hasNoFilteredModels,
+  hasVariants,
+  isVariantSelected,
+  isDefaultVariantSelected,
+  getVariantButtonText,
+  getModelWithVariant
+} from './model-helpers.js'
 
-export function isAgentPart(part) {
-  return part.type === 'agent'
-}
+import {
+  getAgentButtonText,
+  isDefaultAgentSelected,
+  isAgentSelected
+} from './agent-helpers.js'
 
-export function isSubtaskPart(part) {
-  return part.type === 'subtask'
-}
+import {
+  isDisconnected,
+  isNotConnecting,
+  getThinkingButtonText,
+  showMainPanels,
+  showEmptyState,
+  isPromptDisabled,
+  isSendDisabled,
+  getTreePrefix
+} from './ui-helpers.js'
 
-export function isStepStartPart(part) {
-  return part.type === 'step-start'
-}
+import {
+  scrollMessagesToBottom as defaultScrollMessagesToBottom,
+  getScrollPosition as defaultGetScrollPosition,
+  setScrollPosition as defaultSetScrollPosition
+} from './scroll.js'
 
-export function isStepFinishPart(part) {
-  return part.type === 'step-finish'
-}
-
-export function isSnapshotPart(part) {
-  return part.type === 'snapshot'
-}
-
-export function isPatchPart(part) {
-  return part.type === 'patch'
-}
-
-export function isRetryPart(part) {
-  return part.type === 'retry'
-}
-
-export function isCompactionPart(part) {
-  return part.type === 'compaction'
-}
-
-export function isDisconnected(connected) {
-  return !connected
-}
-
-export function isSessionSelected(session, selectedSessionId) {
-  return session.id === selectedSessionId
-}
-
-export function hasNoFilteredSessions(filteredSessions) {
-  return filteredSessions.length === 0
-}
-
-export function isDefaultModelSelected(selectedModel) {
-  return !selectedModel
-}
-
-export function isModelSelected(model, selectedModel) {
-  return model.id === selectedModel
-}
-
-export function hasNoFilteredModels(filteredModels) {
-  return filteredModels.length === 0
-}
-
-export function isNotConnecting(connecting) {
-  return !connecting
-}
-
-export function shouldShowPart(part, showThinking) {
-  if (part.type === 'reasoning') return showThinking
-  return true
-}
-
-export function getThinkingButtonText(showThinking) {
-  return showThinking ? 'Hide Thinking' : 'Show Thinking'
-}
-
-export function getAgentButtonText(selectedAgent) {
-  return selectedAgent || 'Agent'
-}
-
-export function isDefaultAgentSelected(selectedAgent) {
-  return !selectedAgent
-}
-
-export function isAgentSelected(agent, selectedAgent) {
-  return agent.name === selectedAgent
-}
-
-export function hasVariants(variants) {
-  return !!(variants && variants.length > 0)
-}
-
-export function isVariantSelected(variant, selectedVariant) {
-  return variant === selectedVariant
-}
-
-export function isDefaultVariantSelected(selectedVariant) {
-  return !selectedVariant
-}
-
-export function getVariantButtonText(selectedVariant) {
-  return selectedVariant || 'Variant'
-}
-
-export function getModelWithVariant(selectedModel, selectedVariant) {
-  if (!selectedModel) return ''
-  if (!selectedVariant) return selectedModel
-  return `${selectedModel}:${selectedVariant}`
-}
-
-export function showMainPanels(connected, tree) {
-  return connected && !!tree
-}
-
-export function showEmptyState(connected, tree, selectedSessionId) {
-  return connected && !tree && !selectedSessionId
-}
-
-export function isPromptDisabled(selectedNodeId) {
-  return !selectedNodeId
-}
-
-export function isSendDisabled(selectedNodeId, promptInput) {
-  return !selectedNodeId || !promptInput
-}
-
-export function shouldShowReasoningPart(part, showThinking) {
-  return isReasoningPart(part) && showThinking
-}
-
-export function getTaskSessionId(part) {
-  if (part.tool !== 'task') return undefined
-  return part.state?.metadata?.sessionId
-}
-
-export function isClickableTaskPart(part) {
-  return part.tool === 'task' && !!getTaskSessionId(part)
-}
-
-export function getAgentDisplay(part) {
-  return part.name ? `Skill: ${part.name}` : 'Skill'
-}
-
-export function getReasoningDisplay(part) {
-  return part.text || ''
-}
-
-export function getFileDisplay(part) {
-  return part.filename || part.url || 'File'
-}
-
-export function getSubtaskDisplay(part) {
-  if (!part.description) return 'Subtask'
-  if (part.agent) return `Subtask [${part.agent}]: ${part.description}`
-  return `Subtask: ${part.description}`
-}
-
-export function getRetryDisplay(part) {
-  return `Retry attempt ${part.attempt}`
-}
-
-export function filterSessions(sessions, query) {
-  if (!query) return sessions
-  const q = query.toLowerCase()
-  return sessions.filter(s => 
-    (s.title?.toLowerCase().includes(q)) || 
-    (s.id?.toLowerCase().includes(q))
-  )
-}
-
-export function filterModels(providers, query) {
-  if (!providers) return []
-  const connectedSet = providers.connected ? new Set(providers.connected) : null
-  const models = []
-  for (const provider of providers.all || []) {
-    if (connectedSet && !connectedSet.has(provider.id)) continue
-    for (const model of Object.keys(provider.models || {})) {
-      const name = provider.models[model].name
-      const id = `${provider.id}/${model}`
-      models.push({ id, name: name, provider: provider.id, model })
-    }
-  }
-  if (!query) return models
-  const q = query.toLowerCase()
-  return models.filter(m => m.name.toLowerCase().includes(q))
-}
-
-export function getModelVariants(providers, selectedModel) {
-  if (!providers || !selectedModel) return []
-  
-  const [providerId, modelId] = selectedModel.split('/')
-  if (!providerId || !modelId) return []
-  
-  const provider = providers.all?.find(p => p.id === providerId)
-  if (!provider) return []
-  
-  const model = provider.models?.[modelId]
-  if (!model || !model.variants) return []
-  
-  return model.variants
-}
-
-export function getTreePrefix(depth, isLast, ancestorContinues) {
-  if (depth === 0) return ''
-  
-  let prefix = ''
-  
-  for (let i = 0; i < depth - 1; i++) {
-    prefix += ancestorContinues[i] ? '│  ' : '   '
-  }
-  
-  prefix += isLast ? '└─ ' : '├─ '
-  
-  return prefix
-}
-
-export function getPatchDisplay(part) {
-  const count = part.files?.length || 0
-  return `Patch: ${count} files`
-}
-
-function defaultScrollMessagesToBottom(force = false) {
-  const container = document.querySelector('.messages')
-  if (!container) return
-  const threshold = 50
-  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
-  if (force || isNearBottom) {
-    container.scrollTop = container.scrollHeight
-  }
-}
-
-function defaultGetScrollPosition() {
-  const container = document.querySelector('.messages')
-  return container ? container.scrollTop : 0
-}
-
-function defaultSetScrollPosition(position) {
-  const container = document.querySelector('.messages')
-  if (container) {
-    container.scrollTop = position
-  }
-}
-
-function params(partInput) {
-  let keys = Object.keys(partInput)
-  let key_count = keys.length
-  let output = ""
-  keys.forEach((key, idx) => {
-    output += `${key}=${partInput[key]}`
-    output += idx < key_count-1 ? "," : ""
-  })
-  return output
-}
-
-function hasStateInput(part) {
-  return part.state !== undefined && part.state.input !== undefined
-}
-
-function toolWithParams(part) {
-  if (hasStateInput(part)) {
-    return `${part.tool} [${params(part.state.input)}]`
-  }
-  return part.tool
-}
+import { getToolDisplay } from './tool-display.js'
 
 export function app(deps = {}) {
   const {
@@ -535,19 +313,8 @@ export function app(deps = {}) {
       return 'part-' + part.type
     },
 
-    isTextPart,
-    isToolPart,
-    isReasoningPart,
-    isFilePart,
-    isAgentPart,
-    isSubtaskPart,
-    isStepStartPart,
-    isStepFinishPart,
-    isSnapshotPart,
-    isPatchPart,
-    isRetryPart,
-    isCompactionPart,
-    shouldShowPart,
+    partTypes,
+    partDisplay,
     isDisconnected,
     isNotConnecting,
     isSessionSelected,
@@ -557,7 +324,6 @@ export function app(deps = {}) {
     isModelSelected,
     hasNoFilteredModels,
     showMainPanels,
-    shouldShowReasoningPart,
     getAgentButtonText,
     isDefaultAgentSelected,
     isAgentSelected,
@@ -570,27 +336,11 @@ export function app(deps = {}) {
     isSendDisabled,
     showEmptyState,
 
-    getAgentDisplay,
-    getReasoningDisplay,
-    getFileDisplay,
-    getSubtaskDisplay,
-    getRetryDisplay,
-    getPatchDisplay,
-    getTaskSessionId,
-    isClickableTaskPart,
     filterSessions,
     getTreePrefix,
     getModelVariants,
 
-    getToolDisplay(part) {
-      if (part.tool === 'task') {
-        const input = part.state?.input
-        if (!input?.description) return 'Task'
-        if (input.subagent_type) return `Task [${input.subagent_type}]: ${input.description}`
-        return `Task: ${input.description}`
-      }
-      return part.formatted || toolWithParams(part)
-    },
+    getToolDisplay,
 
     formatVersion(version) {
       return 'v' + version
@@ -609,7 +359,7 @@ export function app(deps = {}) {
     },
 
     async handleTaskClick(part) {
-      const sessionId = getTaskSessionId(part)
+      const sessionId = this.partDisplay.getTaskSessionId(part)
       if (sessionId) {
         await this.selectNode(sessionId)
       }
