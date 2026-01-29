@@ -182,7 +182,7 @@ describe('app', () => {
       await appInstance.connect()
 
       expect(mockApi.fetchConfig).toHaveBeenCalled()
-      expect(appInstance.selectedModel).toBe('anthropic/claude-sonnet-4-5')
+      expect(appInstance.selectedModel.name).toBe('anthropic/claude-sonnet-4-5')
     })
 
     test('sets selectedModel from providers.default.model when config.model is missing', async () => {
@@ -211,7 +211,7 @@ describe('app', () => {
 
       await appInstance.connect()
 
-      expect(appInstance.selectedModel).toBe('anthropic/claude-sonnet')
+      expect(appInstance.selectedModel.name).toBe('anthropic/claude-sonnet')
     })
   })
 
@@ -477,7 +477,7 @@ describe('app', () => {
   describe('selectedModel', () => {
     test('is initialized to empty string', () => {
       const appInstance = app()
-      expect(appInstance.selectedModel).toBe('')
+      expect(appInstance.selectedModel).toEqual({})
     })
   })
 
@@ -585,11 +585,28 @@ describe('app', () => {
       appInstance.api = mockApi
       appInstance.selectedNodeId = 'sess123'
       appInstance.promptInput = 'Hello!'
-      appInstance.selectedModel = 'claude-3-opus'
+      appInstance.selectedModel = {provider: "my_provider", modelId: "my_model"}
 
       await appInstance.sendPrompt()
 
-      expect(mockApi.sendMessage).toHaveBeenCalledWith('sess123', 'Hello!', { model: 'claude-3-opus' })
+      expect(mockApi.sendMessage).toHaveBeenCalledWith('sess123', 'Hello!', { model: {"providerID": "my_provider", "modelID": "my_model"} })
+    })
+
+    test('passes variant to sendMessage', async () => {
+      const mockApi = {
+        sendMessage: vi.fn().mockResolvedValue(undefined)
+      }
+
+      const appInstance = app({ createApiClient: vi.fn() })
+      appInstance.api = mockApi
+      appInstance.selectedNodeId = 'sess123'
+      appInstance.promptInput = 'Hello!'
+      appInstance.selectedModel = {provider: "my_provider", modelId: "my_model"}
+      appInstance.selectedVariant = "high"
+
+      await appInstance.sendPrompt()
+
+      expect(mockApi.sendMessage).toHaveBeenCalledWith('sess123', 'Hello!', { model: {"providerID": "my_provider", "modelID": "my_model"}, variant: "high" })
     })
 
     test('passes both selectedAgent and selectedModel to sendMessage', async () => {
@@ -602,11 +619,12 @@ describe('app', () => {
       appInstance.selectedNodeId = 'sess123'
       appInstance.promptInput = 'Hello!'
       appInstance.selectedAgent = 'red'
-      appInstance.selectedModel = 'claude-3-opus'
+      appInstance.selectedModel = {provider: "my_provider", modelId: "my_model"}
+      
 
       await appInstance.sendPrompt()
 
-      expect(mockApi.sendMessage).toHaveBeenCalledWith('sess123', 'Hello!', { agent: 'red', model: 'claude-3-opus' })
+      expect(mockApi.sendMessage).toHaveBeenCalledWith('sess123', 'Hello!', { agent: 'red', model: {"modelID": "my_model", "providerID": "my_provider"} })
     })
   })
 
@@ -666,18 +684,7 @@ describe('app', () => {
   describe('currentModelVariants', () => {
     test('returns variants for selected model', () => {
       const appInstance = app()
-      appInstance.providers = {
-        all: [
-          {
-            id: 'anthropic',
-            models: {
-              'claude-sonnet': { variants: ['high', 'max'] }
-            }
-          }
-        ],
-        connected: ['anthropic']
-      }
-      appInstance.selectedModel = 'anthropic/claude-sonnet'
+      appInstance.selectedModel = { variants: {"high": "hi", "max": "something"} }
 
       expect(appInstance.currentModelVariants).toEqual(['high', 'max'])
     })

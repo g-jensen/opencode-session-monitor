@@ -14,7 +14,7 @@ import {
 describe('filterModels', () => {
   const providers = {
     all: [
-      { id: 'anthropic', models: { 'claude-3-opus': {name: "Claude Opus"}, 'claude-3-sonnet': {name: "Claude Sonnet"} } },
+      { id: 'anthropic', models: { 'claude-3-opus': {name: "Claude Opus", variants: ["high", "max"]}, 'claude-3-sonnet': {name: "Claude Sonnet"} } },
       { id: 'openai', models: { 'gpt-4': {name: "GPT-4"}, 'gpt-3.5-turbo': {name: "GPT-3.5"} } }
     ],
     connected: ['anthropic']
@@ -24,7 +24,7 @@ describe('filterModels', () => {
     const result = filterModels(providers, '')
 
     expect(result).toHaveLength(2)
-    expect(result).toContainEqual({ id: 'anthropic/claude-3-opus', name: "Claude Opus", provider: 'anthropic', model: 'claude-3-opus' })
+    expect(result).toContainEqual({ id: 'anthropic/claude-3-opus', name: "Claude Opus", provider: 'anthropic', model: 'claude-3-opus', variants: ["high", "max"]})
     expect(result).toContainEqual({ id: 'anthropic/claude-3-sonnet', name: "Claude Sonnet", provider: 'anthropic', model: 'claude-3-sonnet' })
     expect(result).not.toContainEqual({ id: 'openai/gpt-4', name: "GPT-4", provider: 'openai', model: 'gpt-4' })
     expect(result).not.toContainEqual({ id: 'openai/gpt-3.5-turbo', name: "GPT-3.5", provider: 'openai', model: 'gpt-3.5-turbo' })
@@ -34,7 +34,7 @@ describe('filterModels', () => {
     const result = filterModels(providers, 'CLAUDE')
 
     expect(result).toHaveLength(2)
-    expect(result).toContainEqual({ id: 'anthropic/claude-3-opus', name: "Claude Opus", provider: 'anthropic', model: 'claude-3-opus' })
+    expect(result).toContainEqual({ id: 'anthropic/claude-3-opus', name: "Claude Opus", provider: 'anthropic', model: 'claude-3-opus', variants: ["high", "max"] })
     expect(result).toContainEqual({ id: 'anthropic/claude-3-sonnet', name: "Claude Sonnet", provider: 'anthropic', model: 'claude-3-sonnet' })
   })
 
@@ -101,23 +101,15 @@ describe('getModelVariants', () => {
   }
 
   test('returns variants for a model that has them', () => {
-    expect(getModelVariants(providers, 'anthropic/claude-sonnet')).toEqual(['high', 'max'])
+    expect(getModelVariants({variants: {"high": "blah", "low": "trees"}})).toEqual(['high', 'low'])
   })
 
   test('returns empty array for model with no variants', () => {
-    expect(getModelVariants(providers, 'anthropic/claude-opus')).toEqual([])
+    expect(getModelVariants({variants: {}})).toEqual([])
   })
 
-  test('returns empty array when model not found', () => {
-    expect(getModelVariants(providers, 'anthropic/unknown')).toEqual([])
-  })
-
-  test('returns empty array when providers is null', () => {
-    expect(getModelVariants(null, 'anthropic/claude-sonnet')).toEqual([])
-  })
-
-  test('returns empty array when selectedModel is empty', () => {
-    expect(getModelVariants(providers, '')).toEqual([])
+  test('returns empty array when model is null', () => {
+    expect(getModelVariants(null)).toEqual([])
   })
 })
 

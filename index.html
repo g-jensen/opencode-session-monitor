@@ -103,7 +103,7 @@
               <div 
                 class="model-option"
                 :class="{ 'selected': modelHelpers.isModelSelected(model, selectedModel) }"
-                @mousedown="selectedModel = model.name; modelFilter = model.name"
+                @mousedown="selectedModel = model; modelFilter = model.name"
                 x-text="model.name"
               ></div>
             </template>

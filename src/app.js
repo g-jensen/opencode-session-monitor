@@ -54,7 +54,7 @@ export function app(deps = {}) {
       return modelHelpers.filterModels(this.providers, this.modelFilter)
     },
     get currentModelVariants() {
-      return modelHelpers.getModelVariants(this.providers, this.selectedModel)
+      return modelHelpers.getModelVariants(this.selectedModel)
     },
     selectedSessionId: null,
     tree: null,
@@ -73,7 +73,7 @@ export function app(deps = {}) {
     agents: [],
     providers: null,
     selectedAgent: '',
-    selectedModel: '',
+    selectedModel: {},
     selectedVariant: '',
     showAgentDropup: false,
     showVariantDropdown: false,
@@ -101,12 +101,12 @@ export function app(deps = {}) {
         if (this.api.fetchConfig) {
           const config = await this.api.fetchConfig()
           if (config.model) {
-            this.selectedModel = config.model
+            this.selectedModel.name = config.model
             this.modelFilter = config.model
           }
         }
-        if (!this.selectedModel && this.providers?.default?.model) {
-          this.selectedModel = this.providers.default.model
+        if (!this.selectedModel?.name && this.providers?.default?.model) {
+          this.selectedModel.name = this.providers.default.model
           this.modelFilter = this.providers.default.model
         }
         this.subscribeToEvents()
@@ -256,8 +256,10 @@ export function app(deps = {}) {
       if (!this.promptInput || !this.selectedNodeId) return
       const opts = {}
       if (this.selectedAgent) opts.agent = this.selectedAgent
-      const modelWithVariant = modelHelpers.getModelWithVariant(this.selectedModel, this.selectedVariant)
-      if (modelWithVariant) opts.model = modelWithVariant
+      const model = {providerID: this.selectedModel.provider, modelID: this.selectedModel.modelId}
+      if (model.providerID && model.modelID) opts.model = model
+      console.log(this.selectedVariant)
+      if (this.selectedVariant) opts.variant = this.selectedVariant
       if (Object.keys(opts).length > 0) {
         await this.api.sendMessage(this.selectedNodeId, this.promptInput, opts)
       } else {

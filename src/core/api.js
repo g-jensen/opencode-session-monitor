@@ -38,8 +38,7 @@ export function createApiClient(baseUrl, auth) {
       headers: { ...options.headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         parts: [{ type: 'text', text }],
-        ...(opts.agent && { agent: opts.agent }),
-        ...(opts.model && { model: opts.model })
+        ...opts
       })
     })
   }

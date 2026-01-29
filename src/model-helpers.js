@@ -4,10 +4,10 @@ export function filterModels(providers, query) {
   const models = []
   for (const provider of providers.all || []) {
     if (connectedSet && !connectedSet.has(provider.id)) continue
-    for (const model of Object.keys(provider.models || {})) {
-      const name = provider.models[model].name
-      const id = `${provider.id}/${model}`
-      models.push({ id, name: name, provider: provider.id, model })
+    for (const modelKey of Object.keys(provider.models || {})) {
+      const model = provider.models[modelKey]
+      const id = `${provider.id}/${modelKey}`
+      models.push({...model, id, provider: provider.id, model: modelKey, modelId: model.id })
     }
   }
   if (!query) return models
@@ -15,19 +15,11 @@ export function filterModels(providers, query) {
   return models.filter(m => m.name.toLowerCase().includes(q))
 }
 
-export function getModelVariants(providers, selectedModel) {
-  if (!providers || !selectedModel) return []
-  
-  const [providerId, modelId] = selectedModel.split('/')
-  if (!providerId || !modelId) return []
-  
-  const provider = providers.all?.find(p => p.id === providerId)
-  if (!provider) return []
-  
-  const model = provider.models?.[modelId]
-  if (!model || !model.variants) return []
-  
-  return model.variants
+export function getModelVariants(selectedModel) {
+  if (selectedModel?.variants) {
+    return Object.keys(selectedModel.variants)
+  }
+  return []
 }
 
 export function isDefaultModelSelected(selectedModel) {
