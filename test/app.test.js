@@ -114,7 +114,6 @@ describe('app', () => {
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
-        fetchAgents: vi.fn().mockResolvedValue([]),
         fetchProviders: vi.fn().mockResolvedValue(mockProviders)
       }
       const mockCreateApiClient = vi.fn().mockReturnValue(mockApi)
@@ -138,7 +137,6 @@ describe('app', () => {
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
-        fetchAgents: vi.fn().mockResolvedValue([]),
         fetchProviders: vi.fn().mockResolvedValue({ all: [], connected: [] })
       }
       const mockCreateApiClient = vi.fn().mockReturnValue(mockApi)
@@ -164,7 +162,6 @@ describe('app', () => {
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
-        fetchAgents: vi.fn().mockResolvedValue([]),
         fetchProviders: vi.fn().mockResolvedValue({ all: [], connected: [] }),
         fetchConfig: vi.fn().mockResolvedValue(mockConfig)
       }
@@ -190,7 +187,6 @@ describe('app', () => {
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
-        fetchAgents: vi.fn().mockResolvedValue([]),
         fetchProviders: vi.fn().mockResolvedValue({}),
         fetchConfig: vi.fn().mockResolvedValue(mockConfig)
       }

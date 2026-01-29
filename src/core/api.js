@@ -29,7 +29,6 @@ export function createApiClient(baseUrl, auth) {
     fetchSessionChildren: (id) => getJson(baseUrl, `/session/${id}/children`, options),
     fetchMessages: (id) => getJson(baseUrl, `/session/${id}/message`, options),
     abortSession: (id) => postJson(baseUrl, `/session/${id}/abort`, options),
-    fetchAgents: () => getJson(baseUrl, '/agent', options),
     fetchProviders: () => getJson(baseUrl, '/provider', options),
     fetchConfig: () => getJson(baseUrl, '/config', options),
     sendMessage: (sessionId, text, opts = {}) => request(baseUrl, `/session/${sessionId}/prompt_async`, {

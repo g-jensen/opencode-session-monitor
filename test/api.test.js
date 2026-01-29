@@ -148,20 +148,6 @@ describe('createApiClient', () => {
     )
   })
 
-  test('fetchAgents fetches /agent and returns parsed JSON', async () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([{ name: 'agent1', description: 'First agent' }])
-    })
-
-    const client = createApiClient('https://api.example.com', { apiKey: null })
-
-    const result = await client.fetchAgents()
-
-    expect(fetch).toHaveBeenCalledWith('https://api.example.com/agent', expect.objectContaining({ method: 'GET' }))
-    expect(result).toEqual([{ name: 'agent1', description: 'First agent' }])
-  })
-
   test('fetchProviders fetches /provider and returns parsed JSON', async () => {
     const providerData = {
       all: [{ name: 'openai', models: ['gpt-4'] }],
