@@ -34,10 +34,10 @@ describe('isDefaultAgentSelected', () => {
 
 describe('isAgentSelected', () => {
   test('returns true when agent.name matches selectedAgent', () => {
-    expect(isAgentSelected({ name: 'coder' }, 'coder')).toBe(true)
+    expect(isAgentSelected('coder', 'coder')).toBe(true)
   })
 
   test('returns false when agent.name does not match selectedAgent', () => {
-    expect(isAgentSelected({ name: 'coder' }, 'writer')).toBe(false)
+    expect(isAgentSelected('coder', 'writer')).toBe(false)
   })
 })

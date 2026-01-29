@@ -84,12 +84,12 @@ describe('app', () => {
     })
 
     test('fetches and sets agents on connect', async () => {
-      const mockAgents = [{ name: 'build' }, { name: 'plan' }]
+      const mockConfig = {agent: {"build": {disable: false}, "plan": {disable: true}}}
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
-        fetchAgents: vi.fn().mockResolvedValue(mockAgents),
-        fetchProviders: vi.fn().mockResolvedValue({ all: [], connected: [] })
+        fetchProviders: vi.fn().mockResolvedValue({ all: [], connected: [] }),
+        fetchConfig: vi.fn().mockResolvedValue(mockConfig)
       }
       const mockCreateApiClient = vi.fn().mockReturnValue(mockApi)
       const MockEventSource = vi.fn().mockImplementation(() => ({
@@ -104,8 +104,8 @@ describe('app', () => {
 
       await appInstance.connect()
 
-      expect(mockApi.fetchAgents).toHaveBeenCalled()
-      expect(appInstance.agents).toEqual(mockAgents)
+      expect(mockApi.fetchConfig).toHaveBeenCalled()
+      expect(appInstance.agents).toEqual(["build"])
       expect(appInstance.selectedAgent).toEqual("build")
     })
 
@@ -186,17 +186,13 @@ describe('app', () => {
     })
 
     test('sets selectedModel from providers.default.model when config.model is missing', async () => {
-      const mockProviders = {
-        all: [{ id: 'anthropic', models: { 'claude-sonnet': {} } }],
-        connected: ['anthropic'],
-        default: { model: 'anthropic/claude-sonnet' }
-      }
+      const mockConfig = { model: 'anthropic/claude-sonnet-4-5' }
       const mockApi = {
         fetchHealth: vi.fn().mockResolvedValue({ version: '1.0.0' }),
         fetchSessions: vi.fn().mockResolvedValue([]),
         fetchAgents: vi.fn().mockResolvedValue([]),
-        fetchProviders: vi.fn().mockResolvedValue(mockProviders),
-        fetchConfig: vi.fn().mockResolvedValue({})
+        fetchProviders: vi.fn().mockResolvedValue({}),
+        fetchConfig: vi.fn().mockResolvedValue(mockConfig)
       }
       const mockCreateApiClient = vi.fn().mockReturnValue(mockApi)
       const MockEventSource = vi.fn().mockImplementation(() => ({
@@ -211,7 +207,7 @@ describe('app', () => {
 
       await appInstance.connect()
 
-      expect(appInstance.selectedModel.name).toBe('anthropic/claude-sonnet')
+      expect(appInstance.selectedModel.name).toBe('anthropic/claude-sonnet-4-5')
     })
   })
 
